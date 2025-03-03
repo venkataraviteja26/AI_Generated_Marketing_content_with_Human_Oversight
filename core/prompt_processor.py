@@ -28,3 +28,10 @@ def process_prompt(prompt: str) -> str:
     except Exception as e:
         logger.error(f"Error processing prompt: {e}")
         raise e
+
+
+# # Example usage
+# if __name__ == "__main__":
+#     prompt = " What is the   meaning of life? "
+#     content = process_prompt(prompt)
+#     print(content)
