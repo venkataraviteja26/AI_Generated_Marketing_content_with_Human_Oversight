@@ -28,7 +28,7 @@ async def generate_content(prompt: str) -> str:
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {api_key}",  # Replace <API Key> with your actual API key
+                "Authorization": f"Bearer {api_key}",  
                 "Content-Type": "application/json",
             },
             data=json.dumps({
@@ -56,7 +56,7 @@ async def generate_content(prompt: str) -> str:
         raise e
 
 # Example usage
-if __name__ == "__main__":
-    prompt = "What is the meaning of life?"
-    content = asyncio.run(generate_content(prompt))
-    print(content)
+# if __name__ == "__main__":
+#     prompt = "What is the meaning of life?"
+#     content = asyncio.run(generate_content(prompt))
+#     print(content)
