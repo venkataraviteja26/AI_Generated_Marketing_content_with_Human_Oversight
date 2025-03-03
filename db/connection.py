@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from config import Config
+from config import config
 
 # Use the DATABASE_URL from config; if using SQLite, set additional connect args.
-DATABASE_URL = Config.SQLALCHEMY_DATABASE_URI
+DATABASE_URL = config["development"].SQLALCHEMY_DATABASE_URI
 connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
 
 # Create SQLAlchemy engine

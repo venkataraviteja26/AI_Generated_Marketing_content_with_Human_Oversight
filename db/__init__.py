@@ -1,5 +1,5 @@
 from .connection import init_db, SessionLocal, Base
-from .models import Prompt, GeneratedContent, Review
+from .models import Prompt, GeneratedContent, Review, User
 
 all = [
     "init_db",
@@ -7,5 +7,6 @@ all = [
     "GeneratedContent",
     "Review",
     "SessionLocal",
-    "Base"
+    "Base",
+    "User"
 ]

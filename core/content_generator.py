@@ -6,26 +6,35 @@ import os
 import json
 from sqlalchemy.orm import Session
 from config import config
-from db import SessionLocal
-from db import GeneratedContent, Prompt
+from db import GeneratedContent, Prompt, User, SessionLocal, init_db
 
 logger = logging.getLogger("content_generator")
 api_key = config["development"].API_KEY
 
-async def generate_content(prompt_text: str) -> str:
+async def generate_content(prompt_text: str, username: str, email: str) -> str:
     """
     Generate marketing content based on the given prompt using AI.
-    The generated content is stored in the database.
+    The generated content is stored in the database along with user information.
     
     Args:
         prompt_text (str): The input prompt for generating content.
+        username (str): The name of the user generating the content.
+        email (str): The email of the user generating the content.
     
     Returns:
         str: The AI-generated marketing content.
     """
     session = SessionLocal()  # Create a new database session
 
+
     try:
+        # Ensure the user exists in the databas
+        user = session.query(User).filter_by(email=email).first()
+        if not user:
+            user = User(username=username, email=email)
+            session.add(user)
+            session.commit()  # Commit to get user.id
+
         # Ensure the prompt exists in the database
         prompt = session.query(Prompt).filter_by(prompt_text=prompt_text).first()
         if not prompt:
@@ -62,6 +71,7 @@ async def generate_content(prompt_text: str) -> str:
             # Store the generated content in the database
             generated_content = GeneratedContent(
                 prompt_id=prompt.id,
+                user_id=user.id,  # Link generated content to the user
                 content_text=generated_text
             )
             session.add(generated_content)
@@ -82,7 +92,7 @@ async def generate_content(prompt_text: str) -> str:
         session.close()  # Close the database session
 
 # Example usage for testing
-if __name__ == "__main__":
-    test_prompt = "What is the purpose of life?"
-    generated_content = asyncio.run(generate_content(test_prompt))
-    print(f"Generated Content: {generated_content}")
+# if __name__ == "__main__":
+#     test_prompt = "What is the purpose of life?"
+#     generated_content = asyncio.run(generate_content(test_prompt, "John Doe", "john@example.com"))
+#     print(f"Generated Content: {generated_content}")
