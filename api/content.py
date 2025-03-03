@@ -9,6 +9,8 @@ logger = logging.getLogger("content_api")
 
 class ContentRequest(BaseModel):
     prompt: str
+    user_name: str
+    user_email: str
 
 class ContentResponse(BaseModel):
     content: str
@@ -21,9 +23,11 @@ async def generate_marketing_content(request: ContentRequest):
     """
     try:
         # Call the content generator service (assumed to be async)
-        result = await generate_content(request.prompt)
+        result = await generate_content(request.prompt, request.user_name, request.user_email)
         # Log the prompt and the generated content
         logger.info(f"Prompt: {request.prompt}")
+        logger.info(f"User Name: {request.user_name}")
+        logger.info(f"User email: {request.user_email}")
         logger.info(f"Generated Content: {result}")
         return ContentResponse(content=result)
     except Exception as e:

@@ -11,10 +11,14 @@ class ReviewSubmission(BaseModel):
     content_id: int
     updated_content: str
     comment: str = None
+    reviewer_username: str
+    reviewer_email: str
 
 class ReviewResponse(BaseModel):
     review_id: int
     content_id: int
+    reviewer_id: int
+    reviewer_username: str
     updated_content: str
     comment: str = None
     reviewed_at: datetime
@@ -27,7 +31,14 @@ async def submit_review(review: ReviewSubmission):
     """
     try:
         # Process the review via core logic
-        result = await process_review(review.content_id, review.updated_content, review.comment)
+        result = await process_review(
+            review.content_id, 
+            review.updated_content, 
+            review.comment, 
+            review.reviewer_username, 
+            review.reviewer_email
+        )
+
         return result
     except Exception as e:
         logger.error(f"Error processing review: {e}")
