@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+requests
+fastapi
+uvicorn
+python-dotenv
+PyJWT
+pydantic
+sqlalchemy
+# sqlite3
