@@ -26,7 +26,7 @@ def _process_review(content_id: int, updated_content: str, comment: str, reviewe
             session.refresh(reviewer)
             print(f"Created new reviewer: {reviewer.username} (ID: {reviewer.id})")
 
-        # Create the review record with reviewer_id
+        # Create and append a new review
         review = Review(
             content_id=content_id,
             reviewer_id=reviewer.id,  # Associate with the reviewer
@@ -36,6 +36,10 @@ def _process_review(content_id: int, updated_content: str, comment: str, reviewe
         session.add(review)
         session.commit()
         session.refresh(review)
+
+        # Append review to the generated content's review list
+        generated.reviews.append(review)
+        session.commit()
 
         result = {
             "review_id": review.id,
@@ -61,58 +65,66 @@ async def process_review(content_id: int, updated_content: str, comment: str, re
     return await asyncio.to_thread(_process_review, content_id, updated_content, comment, reviewer_username, reviewer_email)
 
 
+if __name__ == "__main__":
+    # Initialize the test database
+    # init_db()
 
-# # Example usage
-# if __name__ == "__main__":
-#     # Initialize the test database
-#     # init_db()
+    session = SessionLocal()
+    try:
+        # Insert a dummy user (content creator)
+        user = User(username="test3_user", email="test3_user@example.com")
+        session.add(user)
+        session.commit()
 
-#     session = SessionLocal()
-#     try:
-#         # Insert a dummy user (content creator)
-#         user = User(username="test3_user", email="test3_user@example.com")
-#         session.add(user)
-#         session.commit()
+        # Insert a dummy reviewer user
+        reviewer1 = User(username="reviewer1_user", email="reviewer1_user@example.com")
+        reviewer2 = User(username="reviewer2_user", email="reviewer2_user@example.com")
+        session.add_all([reviewer1, reviewer2])
+        session.commit()
 
-#         # Insert a dummy reviewer user
-#         reviewer = User(username="reviewer3_user", email="reviewer3_user@example.com")
-#         session.add(reviewer)
-#         session.commit()
+        # Insert a dummy prompt
+        prompt = Prompt(prompt_text="What is the meaning of life?")
+        session.add(prompt)
+        session.commit()
 
-#         # Insert a dummy prompt
-#         prompt = Prompt(prompt_text="What is the meaning of life?")
-#         session.add(prompt)
-#         session.commit()
+        # Insert dummy generated content with user_id
+        generated_content = GeneratedContent(
+            prompt_id=prompt.id,
+            user_id=user.id,  # Associate with the dummy user
+            content_text="The meaning of life is subjective and varies by individual."
+        )
+        session.add(generated_content)
+        session.commit()
 
-#         # Insert dummy generated content with user_id
-#         generated_content = GeneratedContent(
-#             prompt_id=prompt.id,
-#             user_id=user.id,  # Associate with the dummy user
-#             content_text="The meaning of life is subjective and varies by individual."
-#         )
-#         session.add(generated_content)
-#         session.commit()
+        print(f"Inserted test user (ID: {user.id}), reviewers (ID: {reviewer1.id}, {reviewer2.id}), prompt (ID: {prompt.id}), and content (ID: {generated_content.id})")
 
-#         print(f"Inserted test user (ID: {user.id}), reviewer (ID: {reviewer.id}), prompt (ID: {prompt.id}), and content (ID: {generated_content.id})")
+        # Call the async function to add multiple reviews for the generated content
+        updated_text1 = "Life has different meanings for everyone."
+        comment1 = "This is a well-written response but could be more philosophical."
+        review_result1 = asyncio.run(process_review(generated_content.id, updated_text1, comment1, reviewer1.username, reviewer1.email))
 
-#         # Call the async function to review the generated content
-#         updated_text = "Life has different meanings for everyone."
-#         comment = "This is a well-written response but could be more philosophical."
+        updated_text2 = "Life's meaning is a complex philosophical question."
+        comment2 = "Consider adding perspectives from various philosophies."
+        review_result2 = asyncio.run(process_review(generated_content.id, updated_text2, comment2, reviewer2.username, reviewer2.email))
 
-#         # Ensure process_review uses reviewer.id
-#         review_result = asyncio.run(process_review(generated_content.id, updated_text, comment, reviewer.username, reviewer.email))
+        # Display results
+        print("Reviews created successfully:")
+        print(review_result1)
+        print(review_result2)
 
-#         # Display results
-#         print("Review created successfully:")
-#         print(review_result)
+        # Verify multiple reviews are linked to the generated content
+        stored_reviews = session.query(Review).filter(Review.content_id == generated_content.id).all()
+        print(f"Total reviews for content ID {generated_content.id}: {len(stored_reviews)}")
 
-#         # Cleanup
-#         session.query(GeneratedContent).delete()
-#         session.commit()
-#         session.query(Prompt).delete()
-#         session.commit()
-#         session.query(User).delete()
-#         session.commit()
+        # Cleanup
+        session.query(Review).delete()
+        session.commit()
+        session.query(GeneratedContent).delete()
+        session.commit()
+        session.query(Prompt).delete()
+        session.commit()
+        session.query(User).delete()
+        session.commit()
 
-#     finally:
-#         session.close()
+    finally:
+        session.close()

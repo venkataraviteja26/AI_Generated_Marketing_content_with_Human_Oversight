@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
 import logging
-from core.review_manager import process_review
+from core import process_review
 
 router = APIRouter()
 logger = logging.getLogger("reviews_api")
@@ -39,7 +39,15 @@ async def submit_review(review: ReviewSubmission):
             review.reviewer_email
         )
 
-        return result
+        return ReviewResponse(
+            review_id=result["review_id"],
+            content_id=result["content_id"],
+            reviewer_id=result["reviewer_id"],
+            reviewer_username=result["reviewer_username"],
+            updated_content=result["updated_content"],
+            comment=result["comment"],
+            reviewed_at=result["reviewed_at"]
+        )
     except Exception as e:
         logger.error(f"Error processing review: {e}")
         raise HTTPException(status_code=500, detail="Error processing review")

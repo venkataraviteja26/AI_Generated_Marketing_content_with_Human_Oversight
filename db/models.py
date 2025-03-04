@@ -25,12 +25,12 @@ class GeneratedContent(Base):
 
     # Relationships
     prompt = relationship("Prompt", back_populates="generated_contents")
-    review = relationship("Review", back_populates="generated_content", uselist=False, cascade="all, delete")
+    reviews = relationship("Review", back_populates="generated_content", cascade="all, delete")  # **Changed to uselist=True**
     user = relationship("User", back_populates="generated_contents")  # Link to the user who generated it
 
 class Review(Base):
     __tablename__ = "reviews"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)  # **Primary key is review_id**
     content_id = Column(Integer, ForeignKey("generated_contents.id"), nullable=False)
     reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Track who reviewed the content
     updated_content = Column(Text, nullable=False)
@@ -38,7 +38,7 @@ class Review(Base):
     reviewed_at = Column(DateTime, default=datetime.now(ist))
 
     # Relationships
-    generated_content = relationship("GeneratedContent", back_populates="review")
+    generated_content = relationship("GeneratedContent", back_populates="reviews")  # **Updated**
     reviewer = relationship("User", back_populates="reviews")  # Link to the user who reviewed it
 
 class User(Base):

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from db.connection import SessionLocal
-from db.models import GeneratedContent, Review, User
+from db import GeneratedContent, Review, User, SessionLocal
 import logging
 
 router = APIRouter()
@@ -28,17 +27,20 @@ def format_generated_content(entry: GeneratedContent) -> dict:
             "username": entry.user.username,
             "email": entry.user.email
         } if entry.user else None,
-        "review": {
-            "id": entry.review.id,
-            "updated_content": entry.review.updated_content,
-            "comment": entry.review.comment,
-            "reviewed_at": entry.review.reviewed_at,
-            "reviewer": {
-                "reviewer_id": entry.review.reviewer.id,
-                "reviewer_username": entry.review.reviewer.username,
-                "reviewer_email": entry.review.reviewer.email
-            } if entry.review and entry.review.reviewer else None
-        } if entry.review else None
+        "reviews": [  # Now correctly handles multiple reviews
+            {
+                "id": review.id,
+                "updated_content": review.updated_content,
+                "comment": review.comment,
+                "reviewed_at": review.reviewed_at,
+                "reviewer": {
+                    "reviewer_id": review.reviewer.id,
+                    "reviewer_username": review.reviewer.username,
+                    "reviewer_email": review.reviewer.email
+                } if review.reviewer else None
+            }
+            for review in entry.reviews  # Iterate over multiple reviews
+        ]
     }
 
 @router.get("/generated_content/", response_model=list[dict])
